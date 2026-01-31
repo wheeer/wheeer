@@ -1,0 +1,84 @@
+[gd_scene load_steps=10 format=3 uid="uid://yaebgjaetwtr"]
+
+[ext_resource type="PackedScene" uid="uid://dvcl4e41w77vi" path="res://scenes/player.tscn" id="1_eeyfc"]
+[ext_resource type="Texture2D" uid="uid://71gooo6hoaje" path="res://assets/sprites/Suelogrid.png" id="1_gyptq"]
+[ext_resource type="PackedScene" uid="uid://c1ynld6rl4wvi" path="res://scenes/puerta.tscn" id="3_ky6es"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ky6es"]
+load_path = "res://.godot/imported/Suelogrid.png-690d9380c674dbbb379ab5da781724cb.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2bjcq"]
+size = Vector2(423.28574, 649.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2g6pq"]
+size = Vector2(323.57144, 649.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7aqf6"]
+size = Vector2(155.48721, 3873.7178)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qbbh1"]
+size = Vector2(73.0918, 2898)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fnotu"]
+size = Vector2(73.0918, 3002)
+
+[node name="PasilloInicial" type="Node2D"]
+
+[node name="CanvasModulate" type="ColorRect" parent="."]
+offset_left = -1879.0
+offset_top = -5955.0
+offset_right = 1836.0
+offset_bottom = 1882.0
+color = Color(0, 0, 0, 1)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="floor" type="Sprite2D" parent="World"]
+show_behind_parent = true
+position = Vector2(0, -1280)
+scale = Vector2(2, 7)
+texture = ExtResource("1_gyptq")
+
+[node name="floor2" type="Sprite2D" parent="World"]
+show_behind_parent = true
+position = Vector2(0.00012207031, -4530)
+scale = Vector2(5, 5)
+texture = SubResource("CompressedTexture2D_ky6es")
+
+[node name="Limites" type="StaticBody2D" parent="."]
+position = Vector2(333, 238)
+
+[node name="CollisionShape2DUP" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-379.99988, -6486)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_2bjcq")
+
+[node name="CollisionShape2DDOWN" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-277, 740)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_2g6pq")
+
+[node name="CollisionShape2DLEFT" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-1434.0002, -1434)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_7aqf6")
+
+[node name="CollisionShape2DLEFT2" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-1964, -4761)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_qbbh1")
+
+[node name="CollisionShape2D5RIGHT" type="CollisionShape2D" parent="Limites"]
+position = Vector2(699.00024, -1447)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_7aqf6")
+
+[node name="CollisionShape2D5RIGHT2" type="CollisionShape2D" parent="Limites"]
+position = Vector2(1294, -4735)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_fnotu")
+
+[node name="Puerta" parent="." instance=ExtResource("3_ky6es")]
+position = Vector2(-2, -919)
+
+[node name="Player" parent="." instance=ExtResource("1_eeyfc")]

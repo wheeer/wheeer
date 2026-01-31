@@ -1,0 +1,51 @@
+[gd_scene load_steps=4 format=3 uid="uid://n24qqw8818m6"]
+
+[ext_resource type="Script" uid="uid://crcpaw43q5c8f" path="res://scripts/batalla_typing.gd" id="1_gkah5"]
+[ext_resource type="FontFile" uid="uid://cwhqe71b542op" path="res://assets/Fonts/cour.ttf" id="2_gkah5"]
+[ext_resource type="Texture2D" uid="uid://wj24d55gq15f" path="res://assets/sprites/icon.svg" id="3_4frww"]
+
+[node name="BatallaTyping" type="Node2D"]
+script = ExtResource("1_gkah5")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.047521614, 0.042661615, 0.032625206, 1)
+
+[node name="MagoBatalla" type="Sprite2D" parent="."]
+position = Vector2(250, 550)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_4frww")
+
+[node name="PuntoDisparo" type="Marker2D" parent="MagoBatalla"]
+position = Vector2(38, -58)
+
+[node name="InterfazBatalla" type="CanvasLayer" parent="."]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="InterfazBatalla"]
+custom_minimum_size = Vector2(800, 600)
+anchors_preset = -1
+anchor_left = 0.15300001
+anchor_right = 0.84700006
+anchor_bottom = 0.92600006
+offset_left = -0.25601196
+offset_right = 0.2559204
+offset_bottom = -0.048034668
+grow_horizontal = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_fonts/normal_font = ExtResource("2_gkah5")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "public class Mago y si le agrego mas palabras?"
+
+[node name="PanelConsola" type="PanelContainer" parent="InterfazBatalla"]
+anchors_preset = -1
+anchor_top = 0.535
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 0.3199768
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0

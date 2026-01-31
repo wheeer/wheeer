@@ -1,0 +1,108 @@
+[gd_scene load_steps=14 format=3 uid="uid://4j4yp4vxuuee"]
+
+[ext_resource type="PackedScene" uid="uid://dvcl4e41w77vi" path="res://scenes/player.tscn" id="1_2tyw2"]
+[ext_resource type="Texture2D" uid="uid://71gooo6hoaje" path="res://assets/sprites/Suelogrid.png" id="2_sq688"]
+[ext_resource type="Script" uid="uid://xksslgy68mbk" path="res://scripts/altar.gd" id="3_4ylun"]
+[ext_resource type="Texture2D" uid="uid://bcc5rgkdvjilj" path="res://assets/sprites/atril.webp" id="4_5whap"]
+[ext_resource type="PackedScene" uid="uid://c1ynld6rl4wvi" path="res://scenes/puerta.tscn" id="5_5whap"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_sq688"]
+load_path = "res://.godot/imported/Suelogrid.png-690d9380c674dbbb379ab5da781724cb.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sq688"]
+size = Vector2(423.28574, 649.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ays6u"]
+size = Vector2(323.57144, 649.75)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4ylun"]
+size = Vector2(155.48721, 3914.859)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5whap"]
+size = Vector2(73.0918, 2898)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nobi7"]
+size = Vector2(73.0918, 3002)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_nobi7"]
+radius = 169.3576
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5rvh7"]
+radius = 235.07658
+
+[node name="HubCentral" type="Node2D"]
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="floor" type="Sprite2D" parent="World"]
+show_behind_parent = true
+position = Vector2(0, -1400)
+scale = Vector2(2, 7)
+texture = ExtResource("2_sq688")
+
+[node name="floor2" type="Sprite2D" parent="World"]
+show_behind_parent = true
+position = Vector2(0, -4800)
+scale = Vector2(5, 5)
+texture = SubResource("CompressedTexture2D_sq688")
+
+[node name="PuntosDeEntrada" type="Node2D" parent="."]
+position = Vector2(-2889, -1016)
+
+[node name="Limites" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2DUP" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-9.9999695, -6439)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_sq688")
+
+[node name="CollisionShape2DDOWN" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-0.9999695, 856)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_ays6u")
+
+[node name="CollisionShape2DLEFT" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-1104.0001, -1413)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_4ylun")
+
+[node name="CollisionShape2DLEFT2" type="CollisionShape2D" parent="Limites"]
+position = Vector2(-1645, -4747)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_5whap")
+
+[node name="CollisionShape2D5RIGHT" type="CollisionShape2D" parent="Limites"]
+position = Vector2(1091, -1421.5706)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_4ylun")
+
+[node name="CollisionShape2D5RIGHT2" type="CollisionShape2D" parent="Limites"]
+position = Vector2(1644.0002, -4755)
+scale = Vector2(7, 1)
+shape = SubResource("RectangleShape2D_nobi7")
+
+[node name="Altar" type="StaticBody2D" parent="."]
+position = Vector2(-8, -4737)
+script = ExtResource("3_4ylun")
+
+[node name="Sprite2D" type="Sprite2D" parent="Altar"]
+texture = ExtResource("4_5whap")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Altar"]
+shape = SubResource("CircleShape2D_nobi7")
+
+[node name="ZonaInteraccion" type="Area2D" parent="Altar"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Altar/ZonaInteraccion"]
+shape = SubResource("CircleShape2D_5rvh7")
+
+[node name="Player" parent="." instance=ExtResource("1_2tyw2")]
+top_level = true
+position = Vector2(-2, -6)
+
+[node name="Puerta" parent="." instance=ExtResource("5_5whap")]
+position = Vector2(-166, -624)
+escena_destino = "uid://bmxbu4kppd4ta"
+
+[connection signal="body_entered" from="Altar/ZonaInteraccion" to="Altar" method="_on_zona_interaccion_body_entered"]
+[connection signal="body_exited" from="Altar/ZonaInteraccion" to="Altar" method="_on_zona_interaccion_body_exited"]

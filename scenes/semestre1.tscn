@@ -1,0 +1,50 @@
+[gd_scene load_steps=8 format=3 uid="uid://bmxbu4kppd4ta"]
+
+[ext_resource type="Texture2D" uid="uid://71gooo6hoaje" path="res://assets/sprites/Suelogrid.png" id="1_mxt8i"]
+[ext_resource type="Script" uid="uid://bjh0njr2hprsn" path="res://scripts/semestre1.gd" id="1_or5jh"]
+[ext_resource type="PackedScene" uid="uid://dvcl4e41w77vi" path="res://scenes/player.tscn" id="1_t57j0"]
+[ext_resource type="Script" uid="uid://qvmwkas0xeff" path="res://scripts/muralla_codigo.gd" id="2_7goge"]
+[ext_resource type="Texture2D" uid="uid://beks2awvx86im" path="res://assets/sprites/paredgrid.png" id="2_krcaf"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t57j0"]
+size = Vector2(2304, 307)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7goge"]
+size = Vector2(2320, 430)
+
+[node name="Semestre1" type="Node2D"]
+script = ExtResource("1_or5jh")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -1152.0
+offset_top = -9893.0
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.0029411765, 0, 0.47547334, 0.8)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(1359, -1432)
+texture = ExtResource("1_mxt8i")
+
+[node name="Player" parent="." instance=ExtResource("1_t57j0")]
+
+[node name="MurallaCodigo" type="StaticBody2D" parent="."]
+position = Vector2(12, -1303)
+script = ExtResource("2_7goge")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MurallaCodigo"]
+shape = SubResource("RectangleShape2D_t57j0")
+
+[node name="Sprite2D" type="Sprite2D" parent="MurallaCodigo"]
+position = Vector2(-5.4999237, 0.4999962)
+scale = Vector2(2.4675188, 0.32729214)
+texture = ExtResource("2_krcaf")
+
+[node name="ZonaDeteccion" type="Area2D" parent="MurallaCodigo"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MurallaCodigo/ZonaDeteccion"]
+position = Vector2(-7, 104)
+shape = SubResource("RectangleShape2D_7goge")
+
+[connection signal="body_entered" from="MurallaCodigo/ZonaDeteccion" to="MurallaCodigo" method="_on_zona_deteccion_body_entered"]
+[connection signal="body_exited" from="MurallaCodigo/ZonaDeteccion" to="MurallaCodigo" method="_on_zona_deteccion_body_exited"]
