@@ -13,7 +13,7 @@ offset_bottom = 648.0
 color = Color(0.047521614, 0.042661615, 0.032625206, 1)
 
 [node name="MagoBatalla" type="Sprite2D" parent="."]
-position = Vector2(250, 550)
+position = Vector2(252, 550)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("3_4frww")
 
@@ -21,6 +21,37 @@ texture = ExtResource("3_4frww")
 position = Vector2(38, -58)
 
 [node name="InterfazBatalla" type="CanvasLayer" parent="."]
+
+[node name="BotonCompilar" type="ColorRect" parent="InterfazBatalla"]
+visible = false
+anchors_preset = -1
+anchor_left = 0.637
+anchor_top = 0.32700002
+anchor_right = 0.804
+anchor_bottom = 0.48800004
+offset_left = -244.82404
+offset_top = 83.10399
+offset_right = -240.20801
+offset_bottom = 82.77597
+size_flags_horizontal = 4
+size_flags_vertical = 4
+color = Color(0, 0.3764706, 0, 1)
+
+[node name="Label" type="Label" parent="InterfazBatalla/BotonCompilar"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.102000006
+anchor_top = 0.17
+anchor_right = 0.934
+anchor_bottom = 0.81700003
+offset_left = 0.00799942
+offset_top = 0.010000229
+offset_right = -0.06399536
+offset_bottom = 0.03199768
+text = "Enter↵ 
+para compilar"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="RichTextLabel" type="RichTextLabel" parent="InterfazBatalla"]
 custom_minimum_size = Vector2(800, 600)
@@ -39,6 +70,7 @@ bbcode_enabled = true
 text = "public class Mago y si le agrego mas palabras?"
 
 [node name="PanelConsola" type="PanelContainer" parent="InterfazBatalla"]
+visible = false
 anchors_preset = -1
 anchor_top = 0.535
 anchor_right = 1.0
@@ -46,6 +78,9 @@ anchor_bottom = 1.0
 offset_top = 0.3199768
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="LogTexto" type="RichTextLabel" parent="InterfazBatalla/PanelConsola"]
+layout_mode = 2
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0

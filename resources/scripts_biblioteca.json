@@ -1,0 +1,24 @@
+{
+  "facil": [
+    {
+      "titulo": "Algoritmo Saludo",
+      "codigo": "Algoritmo Saludo\n\tEscribir \"Hola Mundo\"\nFinAlgoritmo",
+      "salida": "  Hola Mundo"
+    },
+    {
+      "titulo": "Algoritmo Sumar",
+      "codigo": "Algoritmo Sumar\n\tDefinir a Como Entero\n\ta <- 5 + 5\n\tEscribir a\nFinAlgoritmo",
+      "salida": "  10"
+    },
+    {
+      "titulo": "Algoritmo IVA",
+      "codigo": "Algoritmo CalcularIVA\n\tprecio <- 100\n\tiva <- precio * 0.19\n\tEscribir iva\nFinAlgoritmo",
+      "salida": "  19"
+    },
+    {
+      "titulo": "Algoritmo Paridad",
+      "codigo": "Algoritmo EsPar\n\tEscribir 4 % 2\nFinAlgoritmo",
+      "salida": "  0"
+    }
+  ]
+}
