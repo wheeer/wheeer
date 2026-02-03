@@ -6,117 +6,136 @@ extends Node2D
 @onready var log_texto = $InterfazBatalla/PanelConsola/LogTexto
 @onready var boton_compilar = $InterfazBatalla/BotonCompilar
 
+# --- CAPAS DE SERVICIO (Delegación) ---
+var puntos_calculadora = CalculadoraPuntos.new()
+@onready var habilidades = GestorHabilidades.new(self)
+
+# --- VARIABLES DE ESTADO ---
 var fase_final_activa = false 
+var esperando_salida = false
 var codigo_objetivo = "" 
 var indice_caracter_actual = 0 
 var escena_bala = preload("res://scenes/proyectil_letra.tscn")
 
-# Variable que guardará el ejercicio actual sacado del JSON
 var script_actual_data = {}
-# Progresión
 var scripts_totales_muro = 3 
 var scripts_actuales = 0
 
-
-# Estadísticas
+# Estadísticas base
 var tiempo_inicio = 0.0
 var total_pulsaciones = 0
 var errores = 0
 
 func _ready():
 	muro_codigo.bbcode_enabled = true
-	panel_consola.hide() # Empezamos con consola oculta
-	preparar_siguiente_script() # Cargamos el primer script
+	panel_consola.hide()
+	preparar_siguiente_script()
 
 func _input(event):
-	if event is InputEventKey and event.pressed:
-		# --- CONECTOR CRÍTICO ---
-		# Si el botón de compilar está visible, el Enter debe activar la consola
-		if fase_final_activa:
-			if event.keycode == KEY_ENTER:
-				iniciar_secuencia_compilacion()
-			return # No procesamos más teclas si estamos en fase final
+	if not (event is InputEventKey and event.pressed): return
 
-		# --- LÓGICA DE TIPEO ---
-		if indice_caracter_actual >= codigo_objetivo.length():
-			return
+	if esperando_salida:
+		_gestionar_salida()
+		return
 
-		total_pulsaciones += 1
-		var letra_presionada = ""
-		var caracter_objetivo = codigo_objetivo[indice_caracter_actual]
+	if fase_final_activa:
+		_gestionar_confirmacion_compilacion(event)
+		return
+
+	_gestionar_escritura_y_habilidades(event)
+
+
+# --- ENRUTADOR DE INPUT ---
+func _gestionar_escritura_y_habilidades(event):
+	# Habilidad: Control (Ráfaga) - KEY_CTRL es universal en Godot
+	if event.keycode == KEY_CTRL:
+		habilidades.habilidad_rafaga()
+		return
+	
+	# Habilidad: Borrar (Completar Palabra)
+	if event.keycode == KEY_BACKSPACE:
+		habilidades.habilidad_palabra()
+		return
 		
-		if event.keycode == KEY_ENTER: letra_presionada = "\n"
-		elif event.keycode == KEY_TAB: letra_presionada = "\t"
-		elif event.keycode == KEY_SPACE: letra_presionada = " "
-		else: letra_presionada = char(event.unicode)
+	_procesar_tecla_manual(event)
 
-		if event.unicode == 0 and letra_presionada not in ["\n", "\t", " "]:
-			return
+func _procesar_tecla_manual(event):
+	if indice_caracter_actual >= codigo_objetivo.length(): return
+	
+	var letra_presionada = _obtener_tecla_string(event)
+	if letra_presionada == "": return
 
-		if letra_presionada == caracter_objetivo:
-			indice_caracter_actual += 1
-			actualizar_texto_visual()
-			disparar_proyectil(letra_presionada, true)
-			ajustar_posicion_mago_dinamica()
-			
-			if indice_caracter_actual >= codigo_objetivo.length():
-				victoria_batalla()
-		else:
-			errores += 1
-			disparar_proyectil(letra_presionada, false)
+	total_pulsaciones += 1
+	if letra_presionada == codigo_objetivo[indice_caracter_actual]:
+		_simular_tecla_correcta(letra_presionada)
+	else:
+		_simular_tecla_error(letra_presionada)
 
+# --- EJECUCIÓN DE ACIERTO/ERROR (Llamadas a servicios) ---
+func _simular_tecla_correcta(letra):
+	indice_caracter_actual += 1
+	puntos_calculadora.registrar_acierto()
+	
+	actualizar_texto_visual()
+	disparar_proyectil(letra, true)
+	ajustar_posicion_mago_dinamica()
+	
+	if letra == " " or letra == "\n": 
+		puntos_calculadora.registrar_palabra_completada()
+	
+	# --- FEEDBACK VISUAL Y CONSOLA ---
+	_actualizar_feedback_visual()
+
+	if indice_caracter_actual >= codigo_objetivo.length():
+		puntos_calculadora.registrar_bloque_completado()
+		victoria_batalla()
+
+func _actualizar_feedback_visual():
+	var racha = puntos_calculadora.racha_actual
+	
+	
+	if racha == 10:
+		panel_consola.show()
+		log_texto.add_text("\n[SISTEMA]: Autocompletado (Borrar) LISTO\n")
+		mago.modulate = Color(1, 1, 0) # Amarillo
+	elif racha == 15:
+		log_texto.add_text("\n[SISTEMA]: Ráfaga (CTRL) LISTA\n")
+		mago.modulate = Color(0, 1, 1) # Cian
+	elif racha == 0:
+		mago.modulate = Color(1, 1, 1) # Blanco
+	
+func _simular_tecla_error(letra):
+	errores += 1
+	puntos_calculadora.registrar_error()
+	disparar_proyectil(letra, false)
+
+# --- FUNCIONES VISUALES Y DE FLUJO ---
 func actualizar_texto_visual():
 	var parte_escrita = codigo_objetivo.left(indice_caracter_actual)
 	var resto = codigo_objetivo.substr(indice_caracter_actual)
 	var ayuda = ""
-	var salto_caracter = 0
+	var salto = 0
 	
 	if resto.length() > 0:
-		var siguiente = resto[0]
-		if siguiente == "\n": 
-			ayuda = "[color=#ff00ff][font_size=16] ENTER↵ [/font_size][/color]\n"
-			salto_caracter = 1
-		elif siguiente == "\t": 
-			ayuda = "[color=#ff00ff][font_size=16] TAB→ [/font_size][/color]"
-			salto_caracter = 1
-		elif siguiente == " ": 
-			ayuda = "[color=#ff00ff][font_size=16] ESPACIO [/font_size][/color]"
-			salto_caracter = 1
+		if resto[0] == "\n": ayuda = "[color=#ff00ff] ENTER↵ [/color]\n"; salto = 1
+		elif resto[0] == "\t": ayuda = "[color=#ff00ff] TAB→ [/color]"; salto = 1
+		elif resto[0] == " ": ayuda = "[color=#ff00ff] ESPACIO [/color]"; salto = 1
 	
-	var parte_restante_visible = resto.substr(salto_caracter)
-	muro_codigo.text = "[color=#ffffff]" + parte_escrita + "[/color]" + ayuda + "[color=#4b4b4b]" + parte_restante_visible + "[/color]"
+	muro_codigo.text = "[color=#ffffff]" + parte_escrita + "[/color]" + ayuda + "[color=#4b4b4b]" + resto.substr(salto) + "[/color]"
 
-func ajustar_posicion_mago_dinamica():
-	var texto_hasta_ahora = codigo_objetivo.left(indice_caracter_actual)
-	var lineas = texto_hasta_ahora.split("\n")
-	var caracteres_en_linea_actual = lineas[-1].length()
-	var ancho_caracter = 14 
-	var objetivo_x = muro_codigo.global_position.x + (caracteres_en_linea_actual * ancho_caracter)
-	var tween = create_tween()
-	tween.tween_property(mago, "global_position:x", objetivo_x, 0.15)
-
-func disparar_proyectil(letra_a_lanzar, es_correcta):
+func disparar_proyectil(letra, es_correcta):
 	var nueva_bala = escena_bala.instantiate()
-	var texto_hasta_ahora = codigo_objetivo.left(indice_caracter_actual)
-	var numero_de_lineas = texto_hasta_ahora.split("\n").size()
-	var altura_base = 10 
-	var espacio_entre_lineas = 26 
-	nueva_bala.y_objetivo = altura_base + ((numero_de_lineas - 1) * espacio_entre_lineas)
-	
-	var texto_bala = letra_a_lanzar
-	if letra_a_lanzar == "\n": texto_bala = "ENTER"
-	elif letra_a_lanzar == "\t": texto_bala = "TAB"
-	elif letra_a_lanzar == " ": texto_bala = "SPC"
-	
-	nueva_bala.letra = texto_bala
+	var lineas = codigo_objetivo.left(indice_caracter_actual).split("\n").size()
+	nueva_bala.y_objetivo = 10 + ((lineas - 1) * 26)
+	nueva_bala.letra = "ENTER" if letra == "\n" else ("TAB" if letra == "\t" else ("SPC" if letra == " " else letra))
 	nueva_bala.es_correcta = es_correcta
 	nueva_bala.global_position = $MagoBatalla/PuntoDisparo.global_position
 	add_child(nueva_bala)
 
 func victoria_batalla():
-	fase_final_activa = true
-	boton_compilar.show() 
-	if tiempo_inicio == 0:
+	fase_final_activa = true 
+	boton_compilar.show()
+	if tiempo_inicio == 0: 
 		tiempo_inicio = Time.get_unix_time_from_system()
 
 func iniciar_secuencia_compilacion():
@@ -125,19 +144,12 @@ func iniciar_secuencia_compilacion():
 	panel_consola.show()
 	log_texto.clear()
 	
-	var lineas = [
-		"*** Ejecución Iniciada. ***",
-		"> " + script_actual_data["titulo"],
-		script_actual_data["salida"], # Muestra la salida definida en tu JSON
-		"*** Ejecución Finalizada con éxito. ***"
-	]
-	
-	for linea in lineas:
-		log_texto.add_text(linea + "\n")
+	var lineas = ["*** Iniciando ***", "> " + script_actual_data["titulo"], script_actual_data["salida"], "*** Éxito ***"]
+	for l in lineas:
+		log_texto.add_text(l + "\n")
 		await get_tree().create_timer(0.4).timeout
 	
 	scripts_actuales += 1
-	
 	if scripts_actuales < scripts_totales_muro:
 		await get_tree().create_timer(1.0).timeout
 		preparar_siguiente_script()
@@ -145,38 +157,43 @@ func iniciar_secuencia_compilacion():
 		finalizar_muro_completo()
 
 func preparar_siguiente_script():
-	# Accedemos directamente a la base de datos del GameManager
-	var biblioteca = GameManager.base_de_scripts["facil"]
-	
-	# Guardamos el diccionario del ejercicio que toca
-	script_actual_data = biblioteca[scripts_actuales]
-	
-	# Extraemos el código
+	script_actual_data = GameManager.base_de_scripts["facil"][scripts_actuales]
 	codigo_objetivo = script_actual_data["codigo"]
-	
-	# Reset de interfaz
 	indice_caracter_actual = 0
 	fase_final_activa = false
 	panel_consola.hide()
 	actualizar_texto_visual()
 	mago.global_position.x = muro_codigo.global_position.x
-	
+
 func finalizar_muro_completo():
-	var tiempo_final = Time.get_unix_time_from_system()
-	var duracion_total = tiempo_final - tiempo_inicio
-	var precision = 0.0
-	if total_pulsaciones > 0:
-		precision = (float(total_pulsaciones - errores) / total_pulsaciones) * 100.0
-	var kpm = 0.0
-	if duracion_total > 0:
-		kpm = (total_pulsaciones / duracion_total) * 60.0
+	var tiempo_total = Time.get_unix_time_from_system() - tiempo_inicio
+	var precision = puntos_calculadora.calcular_precision(total_pulsaciones, errores)
+	var ppm = puntos_calculadora.calcular_ppm(total_pulsaciones, tiempo_total)
 	
-	log_texto.add_text("\n=== INFORME DE RENDIMIENTO ===\n")
-	log_texto.add_text("Precisión: " + str(snapped(precision, 0.1)) + "%\n")
-	log_texto.add_text("Velocidad: " + str(snapped(kpm, 1)) + " KPM\n")
-	log_texto.add_text("Errores: " + str(errores) + "\n")
-	log_texto.add_text("==============================\n")
+	log_texto.add_text("\n=== ESTADÍSTICAS DE BATALLA ===\n")
+	log_texto.add_text("PUNTOS TOTALES: " + str(puntos_calculadora.puntos_totales) + "\n")
+	log_texto.add_text("PRECISIÓN: " + str(snapped(precision, 0.1)) + "%\n")
+	log_texto.add_text("VELOCIDAD: " + str(ppm) + " PPM\n")
+	log_texto.add_text("RACHA MÁXIMA: " + str(puntos_calculadora.racha_maxima) + "\n")
+	log_texto.add_text("\n===============================\n")
+	log_texto.add_text("PULSA CUALQUIER TECLA PARA VOLVER...")
 	
-	await get_tree().create_timer(4.0).timeout
+	esperando_salida = true
+func _gestionar_salida():
 	GameManager.muro_semestre1_derrotado = true
 	get_tree().change_scene_to_file("res://scenes/semestre1.tscn")
+
+func _gestionar_confirmacion_compilacion(event):
+	if event.keycode == KEY_ENTER: iniciar_secuencia_compilacion()
+
+func _obtener_tecla_string(event) -> String:
+	if event.keycode == KEY_ENTER: return "\n"
+	if event.keycode == KEY_TAB: return "\t"
+	if event.keycode == KEY_SPACE: return " "
+	if event.unicode != 0: return char(event.unicode)
+	return ""
+
+func ajustar_posicion_mago_dinamica():
+	var characters = codigo_objetivo.left(indice_caracter_actual).split("\n")[-1].length()
+	var tween = create_tween()
+	tween.tween_property(mago, "global_position:x", muro_codigo.global_position.x + (characters * 14), 0.15)

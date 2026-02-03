@@ -32,7 +32,7 @@ func cargar_scripts_desde_json():
 		print("Error: No se encontró el archivo JSON en ", ruta)
 
 func tiene_todo():
-	# Versión simplificada para evitar errores de sintaxis en versiones viejas
+	# Versión simplificada
 	for valor in grimorios.values():
 		if valor == false:
 			return false
