@@ -5,12 +5,11 @@ extends Node2D
 @onready var panel_consola = $InterfazBatalla/PanelConsola
 @onready var log_texto = $InterfazBatalla/PanelConsola/LogTexto
 @onready var boton_compilar = $InterfazBatalla/BotonCompilar
+@onready var visual = GestorVisual.new(self)
 
-# --- CAPAS DE SERVICIO (Delegación) ---
 var puntos_calculadora = CalculadoraPuntos.new()
 @onready var habilidades = GestorHabilidades.new(self)
 
-# --- VARIABLES DE ESTADO ---
 var fase_final_activa = false 
 var esperando_salida = false
 var codigo_objetivo = "" 
@@ -21,7 +20,6 @@ var script_actual_data = {}
 var scripts_totales_muro = 3 
 var scripts_actuales = 0
 
-# Estadísticas base
 var tiempo_inicio = 0.0
 var total_pulsaciones = 0
 var errores = 0
@@ -31,34 +29,59 @@ func _ready():
 	panel_consola.hide()
 	preparar_siguiente_script()
 
+func _process(_delta):
+	if tiempo_inicio > 0 and not esperando_salida:
+		# Pasamos racha, carga de ráfaga, y los ENTEROS de usos para la UI
+		visual.actualizar_interfaz(
+			puntos_calculadora.racha_actual,
+			puntos_calculadora.carga_rafaga,
+			puntos_calculadora.usos_palabra,
+			puntos_calculadora.usos_frase
+		)
+
 func _input(event):
 	if not (event is InputEventKey and event.pressed): return
-
 	if esperando_salida:
 		_gestionar_salida()
 		return
-
 	if fase_final_activa:
 		_gestionar_confirmacion_compilacion(event)
 		return
 
 	_gestionar_escritura_y_habilidades(event)
 
-
-# --- ENRUTADOR DE INPUT ---
 func _gestionar_escritura_y_habilidades(event):
-	# Habilidad: Control (Ráfaga) - KEY_CTRL es universal en Godot
+	# En Godot 4.x, KEY_CTRL detecta ambos por defecto.
 	if event.keycode == KEY_CTRL:
-		habilidades.habilidad_rafaga()
-		return
-	
-	# Habilidad: Borrar (Completar Palabra)
-	if event.keycode == KEY_BACKSPACE:
 		habilidades.habilidad_palabra()
 		return
-		
+	if event.keycode == KEY_BACKSPACE:
+		habilidades.habilidad_rafaga()
+		return
+	if event.keycode == KEY_DELETE:
+		habilidades.habilidad_especial()
+		return
+	
 	_procesar_tecla_manual(event)
 
+
+
+func _simular_tecla_correcta(letra):
+	if tiempo_inicio == 0: tiempo_inicio = Time.get_unix_time_from_system()
+	indice_caracter_actual += 1
+	puntos_calculadora.registrar_acierto()
+	actualizar_texto_visual()
+	disparar_proyectil(letra, true)
+	ajustar_posicion_mago_dinamica()
+	
+	if letra == " " or letra == "\n": 
+		puntos_calculadora.registrar_palabra_completada()
+
+	if indice_caracter_actual >= codigo_objetivo.length():
+		puntos_calculadora.registrar_bloque_completado()
+		victoria_batalla()
+		
+# --- PROCESAMIENTO MANUAL ---
 func _procesar_tecla_manual(event):
 	if indice_caracter_actual >= codigo_objetivo.length(): return
 	
@@ -71,44 +94,19 @@ func _procesar_tecla_manual(event):
 	else:
 		_simular_tecla_error(letra_presionada)
 
-# --- EJECUCIÓN DE ACIERTO/ERROR (Llamadas a servicios) ---
-func _simular_tecla_correcta(letra):
-	indice_caracter_actual += 1
-	puntos_calculadora.registrar_acierto()
-	
-	actualizar_texto_visual()
-	disparar_proyectil(letra, true)
-	ajustar_posicion_mago_dinamica()
-	
-	if letra == " " or letra == "\n": 
-		puntos_calculadora.registrar_palabra_completada()
-	
-	# --- FEEDBACK VISUAL Y CONSOLA ---
-	_actualizar_feedback_visual()
-
-	if indice_caracter_actual >= codigo_objetivo.length():
-		puntos_calculadora.registrar_bloque_completado()
-		victoria_batalla()
-
-func _actualizar_feedback_visual():
-	var racha = puntos_calculadora.racha_actual
-	
-	
-	if racha == 10:
-		panel_consola.show()
-		log_texto.add_text("\n[SISTEMA]: Autocompletado (Borrar) LISTO\n")
-		mago.modulate = Color(1, 1, 0) # Amarillo
-	elif racha == 15:
-		log_texto.add_text("\n[SISTEMA]: Ráfaga (CTRL) LISTA\n")
-		mago.modulate = Color(0, 1, 1) # Cian
-	elif racha == 0:
-		mago.modulate = Color(1, 1, 1) # Blanco
-	
+# --- OBTENER STRING DE TECLA ---
+func _obtener_tecla_string(event) -> String:
+	if event.keycode == KEY_ENTER: return "\n"
+	if event.keycode == KEY_TAB: return "\t"
+	if event.keycode == KEY_SPACE: return " "
+	if event.unicode != 0: return char(event.unicode)
+	return ""
 func _simular_tecla_error(letra):
 	errores += 1
 	puntos_calculadora.registrar_error()
 	disparar_proyectil(letra, false)
 
+# ... (actualizar_texto_visual, disparar_proyectil, victoria_batalla, etc. se mantienen igual)
 # --- FUNCIONES VISUALES Y DE FLUJO ---
 func actualizar_texto_visual():
 	var parte_escrita = codigo_objetivo.left(indice_caracter_actual)
@@ -186,12 +184,6 @@ func _gestionar_salida():
 func _gestionar_confirmacion_compilacion(event):
 	if event.keycode == KEY_ENTER: iniciar_secuencia_compilacion()
 
-func _obtener_tecla_string(event) -> String:
-	if event.keycode == KEY_ENTER: return "\n"
-	if event.keycode == KEY_TAB: return "\t"
-	if event.keycode == KEY_SPACE: return " "
-	if event.unicode != 0: return char(event.unicode)
-	return ""
 
 func ajustar_posicion_mago_dinamica():
 	var characters = codigo_objetivo.left(indice_caracter_actual).split("\n")[-1].length()

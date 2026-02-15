@@ -82,5 +82,31 @@ grow_vertical = 0
 [node name="LogTexto" type="RichTextLabel" parent="InterfazBatalla/PanelConsola"]
 layout_mode = 2
 
+[node name="HBoxContainer" type="HBoxContainer" parent="InterfazBatalla"]
+anchors_preset = -1
+anchor_left = 0.69500005
+anchor_top = 0.59900004
+anchor_right = 0.96000004
+anchor_bottom = 0.91
+offset_left = 0.35992432
+offset_top = -0.15203857
+offset_right = 0.079956055
+offset_bottom = 0.32000732
+
+[node name="RunaP1" type="ColorRect" parent="InterfazBatalla/HBoxContainer"]
+layout_mode = 2
+
+[node name="RunaP2" type="ColorRect" parent="InterfazBatalla/HBoxContainer"]
+layout_mode = 2
+
+[node name="RunaP3" type="ColorRect" parent="InterfazBatalla/HBoxContainer"]
+layout_mode = 2
+
+[node name="RunaF1" type="ColorRect" parent="InterfazBatalla/HBoxContainer"]
+layout_mode = 2
+
+[node name="RunaF2" type="ColorRect" parent="InterfazBatalla/HBoxContainer"]
+layout_mode = 2
+
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
